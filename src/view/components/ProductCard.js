@@ -93,12 +93,12 @@ const styles = StyleSheet.create({
     marginTop: 8,
     backgroundColor: "#f1f5f9",
     borderRadius: 8,
-    padding: 4,
+    // padding: 2,
   },
   counterBtn: {
     backgroundColor: "#2563eb",
     paddingHorizontal: 12,
-    paddingVertical: 4,
+    paddingVertical: 3,
     borderRadius: 6,
   },
   counterText: {

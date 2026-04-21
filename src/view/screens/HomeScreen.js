@@ -1,7 +1,8 @@
 // src/view/screens/HomeScreen.js
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import BeautySlider from "../components/BeautySlider";
-import { TouchableOpacity } from "react-native";
+import { TouchableOpacity, Image } from "react-native";
+import { Feather, MaterialIcons, Ionicons } from "@expo/vector-icons";
 import Sidebar from "../components/Sidebar";
 import {
   View,
@@ -18,6 +19,8 @@ import Icon from "react-native-vector-icons/Feather";
 import { SafeAreaView } from "react-native-safe-area-context";
 // import { useCart } from "../../context/CartContext";
 import { useSelector } from "react-redux";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useFocusEffect } from "@react-navigation/native";
 const HomeScreen = ({ navigation }) => {
   const [sidebarVisible, setSidebarVisible] = useState(false);
   const [products, setProducts] = useState([]);
@@ -26,9 +29,11 @@ const HomeScreen = ({ navigation }) => {
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState("all");
   const cartItems = useSelector((state) => state.cart.items); // ✅ ADD THIS
+  const [profileImage, setProfileImage] = useState(null);
 
   useEffect(() => {
     loadData();
+    // loadProfileImage();
   }, []);
 
   const loadData = async () => {
@@ -42,6 +47,16 @@ const HomeScreen = ({ navigation }) => {
       setLoading(false);
     }
   };
+  useFocusEffect(
+    useCallback(() => {
+      const loadProfileImage = async () => {
+        const img = await AsyncStorage.getItem("@profile_image");
+        setProfileImage(img); // no need for if check
+      };
+
+      loadProfileImage();
+    }, []),
+  );
 
   const handleSidebarSelect = (category) => {
     setSidebarVisible(false);
@@ -108,23 +123,22 @@ const HomeScreen = ({ navigation }) => {
             onPress={() => setSidebarVisible(true)}
             style={{ paddingleft: 10, paddingTop: 10 }}
           >
-            <Text style={{ fontSize: 27 }}>☰</Text>
+            <Feather name="menu" size={26} color="#000" />
           </TouchableOpacity>
 
           {/* CENTER TEXT */}
           <Text style={styles.topText}>{getTitle()}</Text>
 
-          {/* RIGHT EMPTY VIEW (for proper centering) */}
-          {/* CART ICON — replace <View style={{ width: 10 }} /> with this */}
-          <TouchableOpacity
-            onPress={() => navigation.navigate("Cart")}
-            style={{ paddingRight: 10, paddingTop: 10 }}
-          >
-            <Text style={{ fontSize: 24 }}>🛒</Text>
-            {cartItems.length > 0 && (
-              <View style={styles.cartBadge}>
-                <Text style={styles.cartBadgeText}>{cartItems.length}</Text>
-              </View>
+
+
+          <TouchableOpacity onPress={() => navigation.navigate("profile")}>
+            {profileImage ? (
+              <Image
+                source={{ uri: profileImage }}
+                style={{ width: 35, height: 35, borderRadius: 20 }}
+              />
+            ) : (
+             <Feather name="user" size={22} color="#000" />
             )}
           </TouchableOpacity>
         </View>
@@ -156,13 +170,13 @@ const HomeScreen = ({ navigation }) => {
           <FlatList
             data={filteredProducts}
             keyExtractor={(item) => item.id.toString()}
-            // renderItem={({ item }) => <ProductCard item={item} />}
             renderItem={({ item }) => (
               <ProductCard item={item} navigation={navigation} />
             )}
             numColumns={2}
             columnWrapperStyle={{ justifyContent: "space-between" }}
             showsVerticalScrollIndicator={false}
+            contentContainerStyle={{ paddingBottom: 90 }}
             ListHeaderComponent={
               selectedCategory === "all" && search.length === 0 ? (
                 <BeautySlider />
@@ -170,11 +184,44 @@ const HomeScreen = ({ navigation }) => {
             }
           />
         </View>
+
+        <View style={styles.bottomNavContainer}>
+          <TouchableOpacity
+            style={styles.bottomNavButton}
+            onPress={() => navigation.navigate("Home")}
+          >
+           <Feather name="home" size={24} color="#000" />
+            {/* <Text style={styles.bottomNavText}>Home</Text> */}
+          </TouchableOpacity>
+
+          
+          <TouchableOpacity
+            onPress={() => navigation.navigate("Cart")}
+            style={{ paddingRight: 10, paddingTop: 5 }}
+          >
+            <Feather name="shopping-cart" size={24} color="#000" />
+            {/* <Text style={styles.bottomNavText}>Cart</Text> */}
+
+            {cartItems.length > 0 && (
+              <View style={styles.cartBadge}>
+                <Text style={styles.cartBadgeText}>{cartItems.length}</Text>
+              </View>
+            )}
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.bottomNavButton}
+            onPress={() => navigation.navigate("profile")}
+          >
+            <Feather name="user" size={24} color="#000" />
+            {/* <Text style={styles.bottomNavText}>Profile</Text> */}
+          </TouchableOpacity>
+        </View>
+
         <Sidebar
           visible={sidebarVisible}
           onClose={() => setSidebarVisible(false)}
           onSelect={handleSidebarSelect}
-          navigation={navigation} // ✅ ADD THIS
+          navigation={navigation}
         />
       </View>
     </SafeAreaView>
@@ -210,6 +257,26 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 10,
     fontWeight: "bold",
+  },
+  bottomNavContainer: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    alignItems: "center",
+    height: 55,
+
+    paddingHorizontal: 10,
+    backgroundColor: "#ffffff",
+    borderTopWidth: 1,
+    borderTopColor: "#e0e0e0",
+  },
+  bottomNavButton: {
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  bottomNavText: {
+    marginTop: 4,
+    fontSize: 12,
+    color: "#333",
   },
   header: {
     fontSize: 28,

@@ -1,6 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import React, { useEffect, useState } from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import { Feather, MaterialIcons, MaterialCommunityIcons } from '@expo/vector-icons';
 
 const Sidebar = ({ visible, onClose, onSelect, navigation }) => {
   const [userEmail, setUserEmail] = useState("");
@@ -45,12 +46,12 @@ const Sidebar = ({ visible, onClose, onSelect, navigation }) => {
   return (
     <View style={styles.overlay}>
       <View style={styles.sidebar}>
-        <Text style={styles.title}>Filters</Text>
+        {/* <Text style={styles.title}>Filters</Text> */}
 
         {/* ✅ Show logged-in user email from token */}
-        {userEmail ? (
+        {/* {userEmail ? (
           <Text style={styles.userEmail}>👤 {userEmail}</Text>
-        ) : null}
+        ) : null} */}
 
         <View style={styles.menuContainer}>
           <Text style={styles.categoryTitle}>Categories</Text>
@@ -59,35 +60,40 @@ const Sidebar = ({ visible, onClose, onSelect, navigation }) => {
             style={styles.itemBox}
             onPress={() => onSelect("all")}
           >
-            <Text style={styles.item}>🔄 All Products</Text>
+            <Feather name="grid" size={20} color="#2563eb" /> 
+            <Text style={styles.item}>All Products</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
             style={styles.itemBox}
             onPress={() => onSelect("beauty")}
           >
-            <Text style={styles.item}>💄 Makeup</Text>
+            <MaterialIcons name="face-retouching-natural" size={20} color="#e91e8c" /> 
+            <Text style={styles.item}>Makeup</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
             style={styles.itemBox}
             onPress={() => onSelect("fragrances")}
           >
-            <Text style={styles.item}>💐 Fragrances</Text>
+            <MaterialCommunityIcons name="spray" size={20} color="#9c27b0" />  
+            <Text style={styles.item}>Fragrances</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
             style={styles.itemBox}
             onPress={() => onSelect("groceries")}
           >
-            <Text style={styles.item}>🧴 Groceries</Text>
+            <MaterialCommunityIcons name="basket" size={20} color="#4caf50" />   
+            <Text style={styles.item}>Groceries</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
             style={styles.itemBox}
             onPress={() => onSelect("furniture")}
           >
-            <Text style={styles.item}>🪑 Furniture</Text>
+            <MaterialCommunityIcons name="sofa" size={20} color="#795548" /> 
+            <Text style={styles.item}>Furniture</Text>
           </TouchableOpacity>
         </View>
 
@@ -141,6 +147,9 @@ const styles = StyleSheet.create({
     backgroundColor: "#f5f5f5",
     padding: 10,
     borderRadius: 12,
+    flexDirection: "row",
+    alignItems: "center",
+    gap:12,
     marginBottom: 12,
   },
   item: {

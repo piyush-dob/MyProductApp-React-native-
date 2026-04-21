@@ -3,7 +3,7 @@ import { View, StyleSheet, ActivityIndicator, Text } from "react-native";
 import { WebView } from "react-native-webview";
 import { useDispatch } from "react-redux";
 import { clearCart } from "../../redux/cartSlice";
-import { SafeAreaView } from "react-native-safe-area-context"; // ✅ ADD
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const PaymentScreen = ({ route, navigation }) => {
   const { totalPrice } = route.params;
@@ -26,57 +26,83 @@ const PaymentScreen = ({ route, navigation }) => {
             background-color: #f1f5f9;
             font-family: Arial, sans-serif;
           }
-          .container {
-            text-align: center;
-            padding: 20px;
+          .spinner {
+            width: 48px;
+            height: 48px;
+            border: 5px solid #e2e8f0;
+            border-top: 5px solid #2563eb;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
           }
-          h2 { color: #0f172a; }
-          p { color: #64748b; }
-          #pay-btn {
-            background-color: #2563eb;
-            color: white;
-            border: none;
-            padding: 15px 40px;
-            font-size: 16px;
-            border-radius: 12px;
-            cursor: pointer;
-            margin-top: 20px;
+          @keyframes spin {
+            to { transform: rotate(360deg); }
+          }
+          .loader-wrap {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+          }
+          .loader-text {
+            color: #64748b;
+            font-size: 15px;
           }
         </style>
       </head>
       <body>
-        <div class="container">
-          <h2>Complete Your Payment</h2>
-          <p>Total Amount: Rs. ${totalPrice}</p>
-          <button id="pay-btn" onclick="openRazorpay()">Pay Now</button>
-        </div>
+
         <script>
           function openRazorpay() {
             var options = {
               key: "rzp_test_SeQPO0aoCFlqh7",
               amount: ${Math.round(totalPrice * 100)},
               currency: "INR",
-              name: "My Shop",
+              name: "My Products",
               description: "Test Payment",
+
               prefill: {
                 name: "Test User",
                 email: "test@example.com",
-                contact: "9999999999"
+                contact: "9999999999",
               },
+
               theme: { color: "#2563eb" },
+
+              method: {
+                upi: true,
+                card: true,
+                netbanking: true,
+                wallet: true,
+                paylater: true,
+              },
+
               notes: {
-  address: "Test Payment"
-},
-_: {
-  integration: "react_native_webview",
-  integration_version: "1.0.0",
-},
+                address: "Test Payment"
+              },
+
               handler: function(response) {
+                // ✅ Show spinner loader instead of success screen
+                document.body.innerHTML = \`
+                  <div style="
+                    position:fixed; top:0; left:0; right:0; bottom:0;
+                    background:#f1f5f9;
+                    display:flex; flex-direction:column;
+                    justify-content:center; align-items:center;
+                    gap:16px;
+                  ">
+                    <div class="spinner"></div>
+                    <p style="color:#64748b; font-size:15px; margin:0;">
+                      Please wait...
+                    </p>
+                  </div>
+                \`;
+
                 window.ReactNativeWebView.postMessage(JSON.stringify({
                   status: "success",
                   paymentId: response.razorpay_payment_id
                 }));
               },
+
               modal: {
                 ondismiss: function() {
                   window.ReactNativeWebView.postMessage(JSON.stringify({
@@ -85,17 +111,22 @@ _: {
                 }
               }
             };
+
             var rzp = new Razorpay(options);
+
             rzp.on("payment.failed", function(response) {
               window.ReactNativeWebView.postMessage(JSON.stringify({
                 status: "failed",
                 error: response.error.description
               }));
             });
+
             rzp.open();
           }
+
+          // ✅ Open Razorpay directly — no Pay Now button
           window.onload = function() {
-            setTimeout(openRazorpay, 1000);
+            setTimeout(openRazorpay, 500);
           };
         </script>
       </body>
@@ -106,43 +137,30 @@ _: {
     try {
       const raw = event.nativeEvent.data;
 
-      // ✅ Log EVERY message coming from WebView
       console.log("==== RAW MESSAGE FROM WEBVIEW ====");
       console.log(raw);
       console.log("==================================");
 
-      // ✅ Ignore non-JSON messages
-      if (!raw || !raw.includes("status")) {
-        console.log("IGNORED — not our message");
-        return;
-      }
+      if (!raw || !raw.includes("status")) return;
 
       const data = JSON.parse(raw);
-      console.log("PARSED DATA:", JSON.stringify(data));
-      console.log("STATUS:", data.status);
 
       if (data.status === "success") {
-        console.log("✅ PAYMENT SUCCESS — paymentId:", data.paymentId);
         dispatch(clearCart());
         navigation.reset({
           index: 0,
-          routes: [
-            { name: "PaymentSuccess", params: { paymentId: data.paymentId } },
-          ],
+          routes: [{ name: "Home" }],
         });
       } else if (data.status === "cancelled") {
-        console.log("🚫 PAYMENT CANCELLED");
         navigation.goBack();
       } else if (data.status === "failed") {
-        console.log("❌ PAYMENT FAILED — error:", data.error);
-        if (data.error) {
-          navigation.reset({ index: 0, routes: [{ name: "PaymentFailed" }] });
-        }
+        navigation.reset({
+          index: 0,
+          routes: [{ name: "PaymentFailed" }],
+        });
       }
     } catch (e) {
-      console.log("❌ CATCH ERROR:", e.message);
-      console.log("RAW DATA THAT CAUSED ERROR:", event.nativeEvent.data);
-      return;
+      console.log("ERROR:", e.message);
     }
   };
 
@@ -153,9 +171,9 @@ _: {
         originWhitelist={["*"]}
         source={{ html: razorpayHTML }}
         onMessage={handleMessage}
-        javaScriptEnabled={true}
-        domStorageEnabled={true}
-        startInLoadingState={true}
+        javaScriptEnabled
+        domStorageEnabled
+        startInLoadingState
         renderLoading={() => (
           <View style={styles.loader}>
             <ActivityIndicator size="large" color="#2563eb" />
@@ -172,7 +190,7 @@ export default PaymentScreen;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f1f5f9", // ✅ ADD this so safe area bg matches
+    backgroundColor: "#f1f5f9",
   },
   loader: {
     flex: 1,

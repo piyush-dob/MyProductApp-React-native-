@@ -55,15 +55,33 @@ const CartScreen = ({ navigation }) => {
 
               {/* Counter buttons */}
               <View style={styles.counterRow}>
-                <TouchableOpacity
-                  style={styles.counterBtn}
-                  onPress={() => dispatch(decrement(item.id))}
-                >
-                  <Text style={styles.counterText}>−</Text>
-                </TouchableOpacity>
+                {/* LEFT BUTTON (− OR DELETE) */}
+                {item.count === 1 ? (
+                  // <TouchableOpacity
+                  //   style={styles.counterBtn}
+                  //   onPress={() => dispatch(removeFromCart(item.id))}
+                  // >
+                  //   <MaterialIcons name="delete" size={22} color="#dc2626" />
+                  // </TouchableOpacity>
+                  <TouchableOpacity
+                    style={styles.deleteIconBtn}
+                    onPress={() => dispatch(removeFromCart(item.id))}
+                  >
+                    <MaterialIcons name="delete" size={21} color="#dc2626" />
+                  </TouchableOpacity>
+                ) : (
+                  <TouchableOpacity
+                    style={styles.counterBtn}
+                    onPress={() => dispatch(decrement(item.id))}
+                  >
+                    <Text style={styles.counterText}>−</Text>
+                  </TouchableOpacity>
+                )}
 
+                {/* COUNT */}
                 <Text style={styles.countNum}>{item.count}</Text>
 
+                {/* PLUS BUTTON */}
                 <TouchableOpacity
                   style={styles.counterBtn}
                   onPress={() => dispatch(increment(item.id))}
@@ -71,15 +89,16 @@ const CartScreen = ({ navigation }) => {
                   <Text style={styles.counterText}>+</Text>
                 </TouchableOpacity>
 
-                <TouchableOpacity
-                style={{ marginLeft: 90 }}
-                onPress={() => dispatch(removeFromCart(item.id))}
-              >
-                <MaterialIcons name="delete" size={22} color="#dc2626" />
-              </TouchableOpacity>
+                {/* DELETE ICON ONLY WHEN count > 1 */}
+                {item.count > 1 && (
+                  <TouchableOpacity
+                    style={{ marginLeft: 90 }}
+                    onPress={() => dispatch(removeFromCart(item.id))}
+                  >
+                    <MaterialIcons name="delete" size={22} color="#dc2626" />
+                  </TouchableOpacity>
+                )}
               </View>
-
-              
             </View>
           </View>
         )}
@@ -181,6 +200,11 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "bold",
     color: "#16a34a",
+  },
+  deleteIconBtn: {
+    padding: 4,
+    justifyContent: "center",
+    alignItems: "center",
   },
   orderBtn: {
     backgroundColor: "#2563eb",

@@ -37,6 +37,7 @@ const OtpScreen = ({ route, navigation }) => {
 
         // ✅ Save token to AsyncStorage
         await AsyncStorage.setItem("userToken", token);
+        await AsyncStorage.setItem("userEmail", email); // optional, for easy access
 
 
         Toast.show({
