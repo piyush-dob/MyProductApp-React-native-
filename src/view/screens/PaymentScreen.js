@@ -149,7 +149,7 @@ const PaymentScreen = ({ route, navigation }) => {
         dispatch(clearCart());
         navigation.reset({
           index: 0,
-          routes: [{ name: "Home" }],
+          routes: [{ name: "MainTabs" }],
         });
       } else if (data.status === "cancelled") {
         navigation.goBack();

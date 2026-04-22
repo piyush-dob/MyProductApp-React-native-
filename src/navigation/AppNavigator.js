@@ -1,22 +1,18 @@
 import React from "react";
 import { NavigationContainer } from "@react-navigation/native";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
-import HomeScreen from "../view/screens/HomeScreen";
+import BottomTabNavigator from "./BottomTabNavigator"; // ✅ Import this
 import SecondScreen from "../view/screens/SecondScreen";
 import DetailsScreen from "../view/screens/DetailsScreen";
 import LoginScreen from "../view/screens/LoginScreen";
 import RegisterScreen from "../view/screens/RegisterScreen";
 import OtpScreen from "../view/screens/OtpScreen";
 import CustomToast from "../view/components/CustomToast";
-import CartScreen from "../view/screens/CartScreen";
 import PaymentFailed from "../view/screens/PaymentFailed";
 import PaymentSuccess from "../view/screens/PaymentSuccess";
 import PaymentScreen from "../view/screens/PaymentScreen";
-import ProfileScreen from "../view/screens/ProfileScreen";
-import { createNativeStackNavigator } from "@react-navigation/native-stack";
-// import PaymentScreen from "../view/screens/PaymentScreen";
-// import PaymentSuccess from "../view/screens/PaymentSuccess";
-// import PaymentFailed from "../view/screens/PaymentFailed";
+import SplashScreen from "../view/screens/SplashScreen";
 
 const Stack = createNativeStackNavigator();
 
@@ -25,15 +21,23 @@ const AppNavigator = () => {
     <NavigationContainer>
       <Stack.Navigator>
         <Stack.Screen
+          name="Splash"
+          component={SplashScreen}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
           name="login"
           component={LoginScreen}
           options={{ headerShown: false, animation: "slide_from_right" }}
         />
+
+        {/* ✅ This one screen replaces Home, Cart, and Profile */}
         <Stack.Screen
-          name="Home"
-          component={HomeScreen}
-          options={{ headerShown: false, animation: "slide_from_right" }}
+          name="MainTabs"
+          component={BottomTabNavigator}
+          options={{ headerShown: false }}
         />
+
         <Stack.Screen
           name="Second"
           component={SecondScreen}
@@ -42,7 +46,7 @@ const AppNavigator = () => {
         <Stack.Screen
           name="Product Details"
           component={DetailsScreen}
-          options={{  animation: "slide_from_right" }}
+          options={{ animation: "slide_from_right" }}
         />
         <Stack.Screen
           name="register"
@@ -60,11 +64,6 @@ const AppNavigator = () => {
           options={{ headerShown: false, animation: "slide_from_right" }}
         />
         <Stack.Screen
-          name="Cart"
-          component={CartScreen}
-          options={{ headerShown: false, animation: "slide_from_right" }}
-        />
-        <Stack.Screen
           name="Payment"
           component={PaymentScreen}
           options={{ headerShown: false, animation: "slide_from_right" }}
@@ -77,11 +76,6 @@ const AppNavigator = () => {
         <Stack.Screen
           name="PaymentFailed"
           component={PaymentFailed}
-          options={{ headerShown: false, animation: "slide_from_right" }}
-        />
-        <Stack.Screen
-          name="profile"
-          component={ProfileScreen}
           options={{ headerShown: false, animation: "slide_from_right" }}
         />
       </Stack.Navigator>

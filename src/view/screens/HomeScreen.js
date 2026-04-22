@@ -21,6 +21,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useSelector } from "react-redux";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFocusEffect } from "@react-navigation/native";
+import { StatusBar } from "react-native";
 const HomeScreen = ({ navigation }) => {
   const [sidebarVisible, setSidebarVisible] = useState(false);
   const [products, setProducts] = useState([]);
@@ -55,6 +56,11 @@ const HomeScreen = ({ navigation }) => {
       };
 
       loadProfileImage();
+    }, []),
+  );
+  useFocusEffect(
+    useCallback(() => {
+      StatusBar.setBarStyle("dark-content"); // Home is light screen
     }, []),
   );
 
@@ -129,16 +135,18 @@ const HomeScreen = ({ navigation }) => {
           {/* CENTER TEXT */}
           <Text style={styles.topText}>{getTitle()}</Text>
 
-
-
-          <TouchableOpacity onPress={() => navigation.navigate("profile")}>
+          <TouchableOpacity
+            onPress={() =>
+              navigation.navigate("MainTabs", { screen: "Profile" })
+            }
+          >
             {profileImage ? (
               <Image
                 source={{ uri: profileImage }}
                 style={{ width: 35, height: 35, borderRadius: 20 }}
               />
             ) : (
-             <Feather name="user" size={22} color="#000" />
+              <Feather name="user" size={22} color="#000" />
             )}
           </TouchableOpacity>
         </View>
@@ -185,38 +193,6 @@ const HomeScreen = ({ navigation }) => {
           />
         </View>
 
-        <View style={styles.bottomNavContainer}>
-          <TouchableOpacity
-            style={styles.bottomNavButton}
-            onPress={() => navigation.navigate("Home")}
-          >
-           <Feather name="home" size={24} color="#000" />
-            {/* <Text style={styles.bottomNavText}>Home</Text> */}
-          </TouchableOpacity>
-
-          
-          <TouchableOpacity
-            onPress={() => navigation.navigate("Cart")}
-            style={{ paddingRight: 10, paddingTop: 5 }}
-          >
-            <Feather name="shopping-cart" size={24} color="#000" />
-            {/* <Text style={styles.bottomNavText}>Cart</Text> */}
-
-            {cartItems.length > 0 && (
-              <View style={styles.cartBadge}>
-                <Text style={styles.cartBadgeText}>{cartItems.length}</Text>
-              </View>
-            )}
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.bottomNavButton}
-            onPress={() => navigation.navigate("profile")}
-          >
-            <Feather name="user" size={24} color="#000" />
-            {/* <Text style={styles.bottomNavText}>Profile</Text> */}
-          </TouchableOpacity>
-        </View>
-
         <Sidebar
           visible={sidebarVisible}
           onClose={() => setSidebarVisible(false)}
@@ -242,42 +218,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
 
-  cartBadge: {
-    position: "absolute",
-    top: 5,
-    right: 5,
-    backgroundColor: "red",
-    borderRadius: 10,
-    width: 18,
-    height: 18,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  cartBadgeText: {
-    color: "#fff",
-    fontSize: 10,
-    fontWeight: "bold",
-  },
-  bottomNavContainer: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-    alignItems: "center",
-    height: 55,
-
-    paddingHorizontal: 10,
-    backgroundColor: "#ffffff",
-    borderTopWidth: 1,
-    borderTopColor: "#e0e0e0",
-  },
-  bottomNavButton: {
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  bottomNavText: {
-    marginTop: 4,
-    fontSize: 12,
-    color: "#333",
-  },
   header: {
     fontSize: 28,
     fontWeight: "bold",

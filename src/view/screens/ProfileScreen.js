@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   View,
   Text,
@@ -12,6 +12,7 @@ import {
   Modal,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useFocusEffect } from "@react-navigation/native";
 import * as ImagePicker from "expo-image-picker";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
@@ -19,12 +20,12 @@ const STORAGE_KEY_IMAGE = "@profile_image";
 const STORAGE_KEY_NOTIFICATIONS = "@notifications_enabled";
 const STORAGE_KEY_DARKMODE = "@dark_mode_enabled";
 
-const ProfileScreen = ({navigation}) => {
+const ProfileScreen = ({ navigation }) => {
   const [profileImage, setProfileImage] = useState(null);
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [darkMode, setDarkMode] = useState(false);
   const [showPhotoModal, setShowPhotoModal] = useState(false);
-  const [userEmail, setUserEmail] = useState(""); // ✅ State for user email
+  const [userEmail, setUserEmail] = useState("");
 
   const STORAGE_KEYS = {
     TOKEN: "userToken",
@@ -35,25 +36,39 @@ const ProfileScreen = ({navigation}) => {
   useEffect(() => {
     const loadData = async () => {
       try {
-        const [img, notif, dark, userEmail] = await Promise.all([
+        const [img, notif, dark, email] = await Promise.all([
           AsyncStorage.getItem(STORAGE_KEY_IMAGE),
           AsyncStorage.getItem(STORAGE_KEY_NOTIFICATIONS),
           AsyncStorage.getItem(STORAGE_KEY_DARKMODE),
-          AsyncStorage.getItem("userEmail"), // ✅ Load user email from AsyncStorage
+          AsyncStorage.getItem("userEmail"),
         ]);
         if (img) setProfileImage(img);
         if (notif !== null) setNotificationsEnabled(JSON.parse(notif));
         if (dark !== null) setDarkMode(JSON.parse(dark));
-        if (userEmail) {
-          // Do something with the user email, e.g., display it
-          setUserEmail(userEmail);
-        }
+        if (email) setUserEmail(email);
       } catch (e) {
         console.error("Failed to load profile data:", e);
       }
     };
     loadData();
   }, []);
+
+  // ✅ FIX 2 — Reset StatusBar when leaving ProfileScreen
+  useFocusEffect(
+    useCallback(() => {
+      // When Profile screen is focused
+      // StatusBar.setBarStyle(darkMode ? "light-content" : "dark-content");
+      // StatusBar.setBackgroundColor(darkMode ? "white" : "white");
+      // StatusBar.setBackgroundColor(darkMode ? "#ffffff" : "#0F0F1A");
+
+
+      return () => {
+        // When leaving Profile screen — reset to default
+        StatusBar.setBarStyle("dark-content");
+        StatusBar.setBackgroundColor("transparent");
+      };
+    }, [darkMode])
+  );
 
   const saveImage = async (uri) => {
     try {
@@ -75,6 +90,9 @@ const ProfileScreen = ({navigation}) => {
   const handleDarkModeToggle = async (val) => {
     setDarkMode(val);
     await AsyncStorage.setItem(STORAGE_KEY_DARKMODE, JSON.stringify(val));
+    // ✅ Instantly update StatusBar when toggle is switched
+    StatusBar.setBarStyle(val ? "light-content" : "dark-content");
+    StatusBar.setBackgroundColor(val ? "#0F0F1A" : "#F2F4FB");
   };
 
   const pickImage = () => {
@@ -85,10 +103,7 @@ const ProfileScreen = ({navigation}) => {
     setShowPhotoModal(false);
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== "granted") {
-      Alert.alert(
-        "Permission Denied",
-        "We need gallery access to change your photo.",
-      );
+      Alert.alert("Permission Denied", "We need gallery access to change your photo.");
       return;
     }
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -130,6 +145,22 @@ const ProfileScreen = ({navigation}) => {
     saveImage(null);
   };
 
+  const handleLogout = async () => {
+    try {
+      await AsyncStorage.multiRemove([
+        STORAGE_KEYS.TOKEN,
+        STORAGE_KEYS.IMAGE,
+        STORAGE_KEYS.EMAIL,
+      ]);
+      navigation.reset({
+        index: 0,
+        routes: [{ name: "login" }],
+      });
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
   const t = {
     bg: darkMode ? "#0F0F1A" : "#F2F4FB",
     card: darkMode ? "#1C1C2E" : "#FFFFFF",
@@ -158,39 +189,17 @@ const ProfileScreen = ({navigation}) => {
       <View>{rightElement}</View>
     </TouchableOpacity>
   );
-  const usertoken = async () => {
-    const token = await AsyncStorage.getItem("userToken");
-    console.log("User Token in Profile Screen:", token);
-  };
-  //   const userEmail = async () => {
-  //     const email = await AsyncStorage.getItem("userEmail");
-  //     console.log("User Email in Profile Screen:", email);
-  //   };
-
-  const handleLogout = async () => {
-    try {
-      await AsyncStorage.multiRemove([
-        STORAGE_KEYS.TOKEN,
-        STORAGE_KEYS.IMAGE,
-        STORAGE_KEYS.EMAIL,
-      ]);
-
-      navigation.reset({
-        index: 0,
-        routes: [{ name: "login" }],
-      });
-    } catch (error) {
-      console.log(error);
-    }
-  };
 
   return (
     <>
+      {/* ✅ FIX 1 — StatusBar with correct style based on darkMode */}
       <StatusBar
         barStyle={darkMode ? "light-content" : "dark-content"}
         backgroundColor={t.bg}
       />
-      <SafeAreaView style={[styles.safeArea, { backgroundColor: t.bg }]}>
+
+      {/* ✅ FIX 1 — edges=["top"] fixes SafeAreaView ignoring StatusBar color */}
+      <SafeAreaView edges={["top"]} style={[styles.safeArea, { backgroundColor: t.bg }]}>
         <ScrollView
           contentContainerStyle={styles.container}
           showsVerticalScrollIndicator={false}
@@ -198,23 +207,13 @@ const ProfileScreen = ({navigation}) => {
           <Text style={[styles.headerTitle, { color: t.text }]}>Profile</Text>
 
           {/* Avatar Card */}
-          <View
-            style={[
-              styles.avatarCard,
-              { backgroundColor: t.card, shadowColor: t.shadow },
-            ]}
-          >
+          <View style={[styles.avatarCard, { backgroundColor: t.card, shadowColor: t.shadow }]}>
             <TouchableOpacity onPress={pickImage} activeOpacity={0.85}>
               <View style={styles.avatarWrapper}>
                 {profileImage ? (
                   <Image source={{ uri: profileImage }} style={styles.avatar} />
                 ) : (
-                  <View
-                    style={[
-                      styles.avatarPlaceholder,
-                      { backgroundColor: t.accent },
-                    ]}
-                  >
+                  <View style={[styles.avatarPlaceholder, { backgroundColor: t.accent }]}>
                     <Text style={{ fontSize: 22 }}>👤</Text>
                   </View>
                 )}
@@ -224,27 +223,18 @@ const ProfileScreen = ({navigation}) => {
               </View>
             </TouchableOpacity>
 
-            <Text style={[styles.profileEmail, { color: t.subText }]}>
-              {userEmail}
-            </Text>
+            <Text style={[styles.profileEmail, { color: t.subText }]}>{userEmail}</Text>
 
             <TouchableOpacity
               style={[styles.changePhotoBtn, { borderColor: t.accent }]}
               onPress={pickImage}
             >
-              <Text style={[styles.changePhotoText, { color: t.accent }]}>
-                Change Photo
-              </Text>
+              <Text style={[styles.changePhotoText, { color: t.accent }]}>Change Photo</Text>
             </TouchableOpacity>
           </View>
 
           {/* Options Card */}
-          <View
-            style={[
-              styles.card,
-              { backgroundColor: t.card, shadowColor: t.shadow },
-            ]}
-          >
+          <View style={[styles.card, { backgroundColor: t.card, shadowColor: t.shadow }]}>
             <OptionRow
               icon="🔔"
               label="Notifications"
@@ -279,12 +269,7 @@ const ProfileScreen = ({navigation}) => {
               rightElement={
                 <Text style={[styles.chevron, { color: t.subText }]}>›</Text>
               }
-              onPress={() => {
-                Alert.alert("Security", "Manage your security settings here.");
-                // usertoken();
-                //  // call function
-                // userEmail();
-              }}
+              onPress={() => Alert.alert("Security", "Manage your security settings here.")}
             />
 
             <OptionRow
@@ -294,10 +279,7 @@ const ProfileScreen = ({navigation}) => {
                 <Text style={[styles.chevron, { color: t.subText }]}>›</Text>
               }
               onPress={() =>
-                Alert.alert(
-                  "About Us",
-                  "App Version 1.0.0\nBuilt with ❤️ using React Native",
-                )
+                Alert.alert("About Us", "App Version 1.0.0\nBuilt with ❤️ using React Native")
               }
               isLast
             />
@@ -309,23 +291,13 @@ const ProfileScreen = ({navigation}) => {
             onPress={() =>
               Alert.alert("Logout", "Are you sure you want to logout?", [
                 { text: "Cancel", style: "cancel" },
-                {
-                  text: "Logout",
-                  style: "destructive",
-                  onPress: () => handleLogout(),
-                },
+                { text: "Logout", style: "destructive", onPress: () => handleLogout() },
               ])
             }
             activeOpacity={0.85}
           >
-            <Text style={[styles.logoutText, { color: t.danger }]}>
-              🚪 Log Out
-            </Text>
+            <Text style={[styles.logoutText, { color: t.danger }]}>🚪 Log Out</Text>
           </TouchableOpacity>
-
-          <Text style={[styles.version, { color: t.subText }]}>
-            Version 1.0.0
-          </Text>
         </ScrollView>
 
         {/* Photo Picker Modal */}
@@ -342,13 +314,9 @@ const ProfileScreen = ({navigation}) => {
           >
             <TouchableOpacity activeOpacity={1} onPress={() => {}}>
               <View style={[styles.bottomSheet, { backgroundColor: t.card }]}>
-                <View
-                  style={[styles.sheetHandle, { backgroundColor: t.divider }]}
-                />
+                <View style={[styles.sheetHandle, { backgroundColor: t.divider }]} />
 
-                <Text style={[styles.sheetTitle, { color: t.subText }]}>
-                  Profile Photo
-                </Text>
+                <Text style={[styles.sheetTitle, { color: t.subText }]}>Profile Photo</Text>
 
                 <TouchableOpacity
                   onPress={handleGallery}
@@ -371,10 +339,7 @@ const ProfileScreen = ({navigation}) => {
                 {profileImage && (
                   <TouchableOpacity
                     onPress={handleRemovePhoto}
-                    style={[
-                      styles.sheetOption,
-                      { borderBottomColor: t.divider },
-                    ]}
+                    style={[styles.sheetOption, { borderBottomColor: t.divider }]}
                   >
                     <Text style={[styles.sheetOptionText, { color: t.danger }]}>
                       🗑️ Remove Photo
@@ -386,9 +351,7 @@ const ProfileScreen = ({navigation}) => {
                   onPress={() => setShowPhotoModal(false)}
                   style={styles.sheetCancel}
                 >
-                  <Text style={[styles.sheetCancelText, { color: t.subText }]}>
-                    Cancel
-                  </Text>
+                  <Text style={[styles.sheetCancelText, { color: t.subText }]}>Cancel</Text>
                 </TouchableOpacity>
               </View>
             </TouchableOpacity>
@@ -408,10 +371,9 @@ const styles = StyleSheet.create({
     fontWeight: "800",
     letterSpacing: 0.3,
     marginTop: 12,
-    marginBottom: 22,
+    marginBottom: 20,
   },
 
-  // Avatar Card
   avatarCard: {
     borderRadius: 22,
     paddingVertical: 28,
@@ -469,7 +431,6 @@ const styles = StyleSheet.create({
   },
   changePhotoText: { fontSize: 13, fontWeight: "700" },
 
-  // Options Card
   card: {
     borderRadius: 18,
     paddingHorizontal: 16,
@@ -497,7 +458,6 @@ const styles = StyleSheet.create({
   optionLabel: { flex: 1, fontSize: 15, fontWeight: "600" },
   chevron: { fontSize: 24, fontWeight: "300" },
 
-  // Logout
   logoutBtn: {
     borderWidth: 1.5,
     borderRadius: 14,
@@ -508,7 +468,6 @@ const styles = StyleSheet.create({
   logoutText: { fontWeight: "700", fontSize: 15, letterSpacing: 0.4 },
   version: { textAlign: "center", fontSize: 12, marginTop: 2 },
 
-  // Modal / Bottom Sheet
   modalBackdrop: {
     flex: 1,
     backgroundColor: "rgba(0,0,0,0.45)",

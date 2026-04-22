@@ -31,7 +31,7 @@ const RegisterScreen = ({ navigation }) => {
     await AsyncStorage.setItem("user", JSON.stringify(user));
     alert("Registered Successfully");
 
-    navigation.replace("Home");
+    navigation.replace("MainTabs");
   } catch (error) {
     console.log(error);
   }

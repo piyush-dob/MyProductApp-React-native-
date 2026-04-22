@@ -22,7 +22,7 @@ const OtpScreen = ({ route, navigation }) => {
         email: email,
         loginTime: new Date().toISOString(),
         exp: Date.now() + 7 * 24 * 60 * 60 * 1000, // 7 days expiry
-      })
+      })    
     );
     const signature = "fakesignature123"; // dummy signature
     return `${header}.${payload}.${signature}`;
@@ -48,7 +48,7 @@ const OtpScreen = ({ route, navigation }) => {
 
         navigation.reset({
           index: 0,
-          routes: [{ name: "Home" }],
+          routes: [{ name: "MainTabs" }],
         });
       } catch (error) {
         console.log("Token save error:", error);
