@@ -94,7 +94,7 @@ const SplashScreen = ({ navigation }) => {
 
         {/* App Name */}
         <Animated.Text style={[styles.appName, { opacity: textOpacity }]}>
-          MyProducts
+         ConnectiveApp
         </Animated.Text>
 
         {/* Tagline */}

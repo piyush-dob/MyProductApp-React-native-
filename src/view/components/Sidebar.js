@@ -141,7 +141,8 @@ const styles = StyleSheet.create({
     padding: 14,
     borderRadius: 12,
     alignItems: "center",
-    marginTop: 10,            // ✅ small gap above logout
+    marginTop: 20,    
+    marginBottom:20        // ✅ small gap above logout
   },
   closeText: {
     color: "#fff",

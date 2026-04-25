@@ -1,17 +1,17 @@
 {
   "expo": {
-    "name": "productApp",
-    "slug": "productApp",
+    "name": "connectiveApp",
+    "slug": "connectiveApp",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/ProjectLogo.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "plugins": [
       "expo-dev-client"
     ],
     "splash": {
-      "image": "./assets/splash-icon.png",
+      "image": "./assets/ProjectLogo.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
@@ -20,11 +20,11 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
+        "foregroundImage": "./assets/ProjectLogo.png",
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.anonymous.productApp"
+      "package": "com.anonymous.connectiveApp"
     },
     "web": {
       "favicon": "./assets/favicon.png"

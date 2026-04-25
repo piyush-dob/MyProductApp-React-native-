@@ -183,7 +183,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 15,
     elevation: 3,
-    marginBottom: 30,
+    marginBottom: 60,
   },
   totalRow: {
     flexDirection: "row",
@@ -216,5 +216,6 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 16,
     fontWeight: "bold",
+
   },
 });
